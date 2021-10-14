@@ -1,5 +1,5 @@
 # Getting a real interest rate
-In the last Quest [https://questb.uk/category/ethereum](https://questb.uk/category/ethereum) we created a smart account, where anyone could add a balance and start earning interest. If you’ve not done that yet, you should go complete that Quest first, because that is what we’re going to use in this Quest.
+In the last Quest on [Questbook.app](https://questbook.app) we created a smart account, where anyone could add a balance and start earning interest. If you’ve not done that yet, you should go complete that Quest first, because that is what we’re going to use in this Quest.
 
 There was a major flaw in the previous contract we wrote. We did provide an interest for all deposits made on our account, but the interest was coming from the pocket of the creator of the contract (you). If you remember, you had to add some Ethers additionally to make withdrawals with interest possible.
 
@@ -8,7 +8,7 @@ But, that is not how real banks work. Banks are able to give interest on deposit
 Fortunately there is a project called Compound. Compound is a multi Billion dollar project that is nothing but a few smart contracts written that facilitates giving loans and earning interest. So instead of re-inventing the wheel, we will use Compound and earn real interest using their contracts. That’s the beauty of web3. You can build on top of other’s contracts without their permission!
 
 Just to give a background on Compound, Compound has defined a set of rules using smart contracts for people to park money and for other people to take loans and pay interest. That way people who have parked money earn interest. So we’ll collect ethers from our users and park it on compound. Then when they want to withdraw, we’ll take the interest from Compound and give it to the user.
-## finding the address of compound contract
+## Finding the address of compound contract
 Let’s go to compound’s official documentation
 
 [https://compound.finance/docs](https://compound.finance/docs)
@@ -25,7 +25,7 @@ Compound allows you to deposit various crypto currencies and earn interest on th
 
 Copy the address against cETH. (stands for compound-ETH). Copy this address and visit : 
 
-[https://etherscan.io/address/](https://etherscan.io/address/)PASTE ADDRESS HERE
+[https://etherscan.io/address/0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5](https://etherscan.io/address/0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5)
 
 This will open the contract on EtherScan. Etherscan is an important tool you need to be aware of when operating on Ethereum. EtherScan is a way to look at all the data on Ethereum. All the contracts, all the transactions, all the function calls are all public on Ethereum and accessible from this website.
 
@@ -35,7 +35,7 @@ Here you can see all the transactions that have happened on Compound. Anyone who
 
 You’ll also see a tab called Contract. Tap on that to see the contract itself. You’ll see the source code for CEther.sol.
 
-Now that you have done Quest1, you should be able to read what is going on in the contract. There are other contracts that are referenced by this contract using import statements on the top of the file, much like python. You’ll see all those sol files listed below CEther.sol as well. 
+Now that you have done Quest 1, you should be able to read what is going on in the contract. There are other contracts that are referenced by this contract using import statements on the top of the file, much like python. You’ll see all those sol files listed below CEther.sol as well. 
 
 I don’t really want you to understand the logic of how Compound works yet. All that I want you to notice is that the code doesn’t look very different from the code that we’ve written already! A few hundred lines of Solidity code managing a few billions of dollars! Check out the balance of the top of the link on EtherScan :)
 
@@ -73,7 +73,7 @@ Under networks, instead of choosing mainnet, choose ropsten.
 
 Ropsten is a test network where we can play around with a few experiments before actually putting it on to the main network.
 
-Copy the address against cETH under Ropsten and visit [https://ropsten.etherscan.io/address/](https://ropsten.etherscan.io/address/)PASTE ROPSTEN ADDRESS HERE
+Copy the address against cETH under Ropsten and visit [https://ropsten.etherscan.io/address/0x859e9d8a4edadfedb5a2ff311243af80f85a91b8](https://ropsten.etherscan.io/address/0x859e9d8a4edadfedb5a2ff311243af80f85a91b8)PASTE ROPSTEN ADDRESS HERE
 
 Notice this isn’t same as the link we had opened previously. This is what developers of compound have deployed for testing on Ropsten Test net.
 
@@ -84,6 +84,7 @@ You can use this ready made instead :
 [https://remix.ethereum.org/\#version=soljson-v0.8.4\+commit.c7e474f2.js&optimize=false&runs=200&gist=d40faac96075963e549444b1e101bd8c&evmVersion=null](https://remix.ethereum.org/#version=soljson-v0.8.4+commit.c7e474f2.js&optimize=false&runs=200&gist=d40faac96075963e549444b1e101bd8c&evmVersion=null)
 
 We have of course not started using compound. That’s what we’ll do next.
+
 ## Depositing money to Compound
 Let’s start using the functions that we’ve defined in the interface.
 
@@ -95,13 +96,13 @@ If you notice the signature of this function in our interface, it is a payable f
 
 ![](https://qb-content-staging.s3.ap-south-1.amazonaws.com/public/fb231f7d-06af-4aff-bca3-fd51cb633f77/25ab6c39-542a-4e91-b6a8-929daff52be7.jpg)
 
-Note that we’re not only calling ceth.mint() but also sending ethers by setting the value for this function call by using { value : msg.value }. 
+Note that we’re not only calling `ceth.mint()` but also sending ethers by setting the value for this function call by using `{ value : msg.value }`. 
 
 This means that we will send all the ethers that the user sends to addBalance directly to compound.
 
 Before we change the other two functions getBalance and withdraw, we need to understand how Compound works. 
 
-When you deposit ETH using the mint() function, Compound generates some cETH for you. You can then give cETH to Compound and get back ETH.
+When you deposit ETH using the `mint()` function, Compound generates some cETH for you. You can then give cETH to Compound and get back ETH.
 
 Compound exposes how many cETH a certain user holds using the function balanceOf. It also exposes the number of ETH you can withdraw per cETH using exchangeRateStored. exchangeRateStored keeps steadily increasing, that’s how you earn interest on Compound. 1cETH keeps getting more valuable over time. If it returns 1ETH right now it will yield 1.00….01 ETH a couple minutes later.
 
@@ -132,6 +133,7 @@ This time you will see an error. Something like this
 This is because we are trying to access the compound’s contract cETH using the address we’ve hard coded. But this address exists only on the ropsten test net. To be able to access compound’s contract from our contract, we must also be deployed to the same network i.e. Ropsten.
 
 Let’s see how to do that. But before that we need to get ready with a tool called metamask.
+
 ## Creating a real account w/ Metamask
 In Remix, we do have a few toy accounts that are created for us with some toy money. It’s time for us to grow up. Let us create a real account.
 
@@ -157,9 +159,7 @@ Once you are all set up, and when you tap on the metamask extension, you’ll se
 
 This is your account. If you remember from the previous quest, an account is identified by an address that is mentioned right below the text “Account 1” and looks pretty much like the address that Remix had created for us “0x9234…”. That is now the address of your account. We also know that an account can hold money. Right now, you have 0Ethers in this account. Unlike Remix which gave you 100Eth, the real world gives you nothing. Harsh.
 
-But yay, you’ve got your first real Ethereum account!
-
- 
+But yay, you’ve got your first real Ethereum account. 
 
 Though you needn’t understand too much about cryptography to get going here, it might be useful to touch upon a few concepts here.
 
@@ -168,6 +168,7 @@ The seed phrase you were asked to save is the representation of your private key
 Every account has a public and a private key. To see this you can open the metamask extension and tap on the three dots and select account details. You can share your public key, that is the address of your account that we’ve been referring to for so long. The private key is to be kept secret only with you. The private key is used to generate a digital signature. When a document or a message is signed using a private key, there exist algorithms to find out the public key that is associated with the private key that signed it. Thereby, knowing who actually signed the document. Unlike a physical paper-pen signature, it is practically impossible to forge this digital signature.  
 
 This account structure and digital signatures is how everything on Ethereum is secured. We will see how we leverage this security in just a bit.
+
 ## Adding money to your account, using a testnet
 Now that you have an account, the first step is to add money into this account.
 
@@ -186,6 +187,7 @@ Login with your google account, copy the account address by opening your metamas
 In a few seconds your account will have ethers that you can use for playing with your contracts!
 
 Check your metamask after about 20s.
+
 ## Back to deploying
 Compile the file and head over to the transactions and deploy section from the left bar.
 
@@ -214,6 +216,7 @@ Unlike the toy version, deployment here takes a minute or so.
 You can check the current status by tapping on your metamask. It will show pending till it is actually deployed.
 
 ![](https://qb-content-staging.s3.ap-south-1.amazonaws.com/public/fb231f7d-06af-4aff-bca3-fd51cb633f77/c0b150b7-2ff2-4ef4-846d-6e28ec8553ce.jpg)
+
 ## calling compound functions
 Now that the contract is deployed on ropsten, add value and execute add balance. This time add say 100 finney in value. 1000 finney = 1 eth.
 
@@ -266,7 +269,15 @@ Also look at this documentation of Compound to see how to use Redeem, before we 
 Once done, check out how you did, here’s how to do it :
 
 [https://remix.ethereum.org/\#version=soljson-v0.8.4\+commit.c7e474f2.js&optimize=false&runs=200&gist=c146acab1bd07fe94946d6a7fe00a894&evmVersion=null](https://remix.ethereum.org/#version=soljson-v0.8.4+commit.c7e474f2.js&optimize=false&runs=200&gist=c146acab1bd07fe94946d6a7fe00a894&evmVersion=null)
+
+
 ## next steps
 Right now we’ve allowed for people to either deposit or withdraw once. What if i want to deposit in parts? Or withdraw in parts? Can you modify this contract to do that?
 
-Try it out and send us what you
+To be able to receive money while withdrawing you will need to define a `receive()` function in your contract so that Compound can send money to your contract and thereby to the user withdrawing. 
+
+We leave this as an exercise for you to google and build yourself. 
+Try it out and send us what you built!
+
+Feel free to discuss on our [Discord Server](https://discord.gg/vhQmtMhCwX)
+
